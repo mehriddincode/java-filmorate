@@ -1,36 +1,53 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 /**
  * User model representing a person using the system.
  */
-@Data
+@Getter
+@EqualsAndHashCode
 public final class User {
 
     /** User ID. */
+    @Setter
     private int id;
 
     /** User email. */
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email should be valid")
-    private String email;
+    private final String email;
 
     /** User login. */
     @NotBlank(message = "Login cannot be blank")
     @Pattern(regexp = "^\\S+$", message = "Login cannot contain spaces")
-    private String login;
+    private final String login;
 
     /** User name for display. */
-    private String name;
+    private final String name;
 
     /** User birthday. */
     @PastOrPresent(message = "Birthday cannot be in the future")
-    private LocalDate birthday;
+    private final LocalDate birthday;
+
+    @JsonCreator
+    public User(@JsonProperty("email") String email,
+                @JsonProperty("login") String login,
+                @JsonProperty("name") String name,
+                @JsonProperty("birthday") LocalDate birthday) {
+        this.email = email;
+        this.login = login;
+        this.name = (name == null || name.isBlank()) ? login : name;
+        this.birthday = birthday;
+    }
 }

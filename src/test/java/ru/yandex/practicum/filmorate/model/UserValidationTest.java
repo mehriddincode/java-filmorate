@@ -6,10 +6,17 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,79 +32,55 @@ class UserValidationTest {
 
     @Test
     void shouldCreateUserWithValidData() {
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setLogin("testlogin");
-        user.setName("Test Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = new User("test@test.com", "testlogin", "Test Name", LocalDate.of(2000, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertTrue(violations.isEmpty());
     }
 
-    @Test
-    void shouldFailWhenEmailIsBlank() {
-        User user = new User();
-        user.setEmail("");
-        user.setLogin("testlogin");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"invalid-email"})
+    void shouldFailWhenEmailIsInvalid(String email) {
+        User user = new User(email, "testlogin", "Test Name", LocalDate.of(2000, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
     }
 
-    @Test
-    void shouldFailWhenEmailIsInvalid() {
-        User user = new User();
-        user.setEmail("invalid-email");
-        user.setLogin("testlogin");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"test login"})
+    void shouldFailWhenLoginIsInvalid(String login) {
+        User user = new User("test@test.com", login, "Test Name", LocalDate.of(2000, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
     }
 
-    @Test
-    void shouldFailWhenLoginIsBlank() {
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setLogin("");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void shouldUseLoginAsNameWhenNameIsBlank(String name) {
+        User user = new User("test@test.com", "testlogin", name, LocalDate.of(2000, 1, 1));
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertFalse(violations.isEmpty());
+        assertEquals("testlogin", user.getName());
     }
 
-    @Test
-    void shouldFailWhenLoginContainsSpaces() {
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setLogin("test login");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    @ParameterizedTest
+    @MethodSource("birthdayCases")
+    void shouldValidateBirthday(LocalDate birthday, boolean expectedValid) {
+        User user = new User("test@test.com", "testlogin", "Test Name", birthday);
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertFalse(violations.isEmpty());
+        assertEquals(expectedValid, violations.isEmpty());
     }
 
-    @Test
-    void shouldFailWhenBirthdayIsInFuture() {
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setLogin("testlogin");
-        user.setBirthday(LocalDate.now().plusDays(1)); // Future date
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    void shouldSucceedWhenBirthdayIsToday() {
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setLogin("testlogin");
-        user.setBirthday(LocalDate.now()); // Today
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertTrue(violations.isEmpty());
+    private static Stream<Arguments> birthdayCases() {
+        return Stream.of(
+                Arguments.of(LocalDate.now().plusDays(1), false),
+                Arguments.of(LocalDate.now(), true),
+                Arguments.of(LocalDate.of(1990, 1, 1), true)
+        );
     }
 }

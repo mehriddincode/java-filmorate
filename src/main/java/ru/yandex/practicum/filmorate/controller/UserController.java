@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Controller for User operations.
@@ -24,9 +26,9 @@ import java.util.Map;
 public final class UserController {
 
     /** Memory storage for users. */
-    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new ConcurrentHashMap<>();
     /** ID generator for user. */
-    private int generatedId = 0;
+    private final AtomicInteger generatedId = new AtomicInteger(0);
 
     /**
      * Creates a user.
@@ -36,8 +38,7 @@ public final class UserController {
     @PostMapping
     public User create(@Valid @RequestBody final User user) {
         log.info("Received request to create user: {}", user);
-        validateUser(user);
-        user.setId(++generatedId);
+        user.setId(generatedId.incrementAndGet());
         users.put(user.getId(), user);
         log.info("User created: {}", user);
         return user;
@@ -55,7 +56,6 @@ public final class UserController {
             log.error("User with id {} not found", user.getId());
             throw new ValidationException("User not found to update");
         }
-        validateUser(user);
         users.put(user.getId(), user);
         log.info("User updated: {}", user);
         return user;
@@ -63,18 +63,11 @@ public final class UserController {
 
     /**
      * Finds all users.
-     * @return collection of users.
+     * @return list of users.
      */
     @GetMapping
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         log.info("Retrieving all users. Total users: {}", users.size());
-        return users.values();
-    }
-
-    private void validateUser(final User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("User name blank. Using login: {}", user.getLogin());
-            user.setName(user.getLogin());
-        }
+        return new ArrayList<>(users.values());
     }
 }

@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Controller for Film operations.
@@ -24,9 +26,9 @@ import java.util.Map;
 public final class FilmController {
 
     /** Memory storage for films. */
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final Map<Integer, Film> films = new ConcurrentHashMap<>();
     /** ID generator. */
-    private int generatedId = 0;
+    private final AtomicInteger generatedId = new AtomicInteger(0);
 
     /**
      * Creates a film.
@@ -36,7 +38,7 @@ public final class FilmController {
     @PostMapping
     public Film create(@Valid @RequestBody final Film film) {
         log.info("Received request to create film: {}", film);
-        film.setId(++generatedId);
+        film.setId(generatedId.incrementAndGet());
         films.put(film.getId(), film);
         log.info("Film created: {}", film);
         return film;
@@ -61,11 +63,11 @@ public final class FilmController {
 
     /**
      * Finds all films.
-     * @return collection of films.
+     * @return list of films.
      */
     @GetMapping
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         log.info("Retrieving all films. Total films: {}", films.size());
-        return films.values();
+        return new ArrayList<>(films.values());
     }
 }
