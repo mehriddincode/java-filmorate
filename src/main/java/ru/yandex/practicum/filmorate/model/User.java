@@ -21,7 +21,7 @@ public final class User {
 
     /** User ID. */
     @Setter
-    private int id;
+    private Long id;
 
     /** User email. */
     @NotBlank(message = "Email cannot be blank")
@@ -39,6 +39,9 @@ public final class User {
     /** User birthday. */
     @PastOrPresent(message = "Birthday cannot be in the future")
     private final LocalDate birthday;
+
+    /** User friends IDs. */
+    private final java.util.Set<Long> friends = new java.util.HashSet<>();
 
     @JsonCreator
     public User(@JsonProperty("email") String email,
