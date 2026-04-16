@@ -19,6 +19,22 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
+    public User create(User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        return userStorage.update(user);
+    }
+
+    public List<User> findAll() {
+        return userStorage.findAll();
+    }
+
+    public User getById(Long id) {
+        return userStorage.getById(id);
+    }
+
     public void addFriend(Long userId, Long friendId) {
         User user = userStorage.getById(userId);
         User friend = userStorage.getById(friendId); // Will throw NotFoundException if not exists

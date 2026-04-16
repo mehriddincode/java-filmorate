@@ -11,6 +11,8 @@ import lombok.Setter;
 import ru.yandex.practicum.filmorate.validation.MinimumDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film model representing a movie.
@@ -44,7 +46,7 @@ public final class Film {
     private final int duration;
 
     /** User IDs who liked the film. */
-    private final java.util.Set<Long> likes = new java.util.HashSet<>();
+    private final Set<Long> likes = new HashSet<>();
 
     @JsonCreator
     public Film(@JsonProperty("name") String name,
