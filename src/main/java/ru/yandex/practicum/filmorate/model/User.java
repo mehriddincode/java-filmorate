@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User model representing a person using the system.
@@ -21,7 +23,7 @@ public final class User {
 
     /** User ID. */
     @Setter
-    private int id;
+    private Long id;
 
     /** User email. */
     @NotBlank(message = "Email cannot be blank")
@@ -39,6 +41,9 @@ public final class User {
     /** User birthday. */
     @PastOrPresent(message = "Birthday cannot be in the future")
     private final LocalDate birthday;
+
+    /** User friends IDs. */
+    private final Set<Long> friends = new HashSet<>();
 
     @JsonCreator
     public User(@JsonProperty("email") String email,
