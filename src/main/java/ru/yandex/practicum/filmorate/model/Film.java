@@ -11,6 +11,8 @@ import lombok.Setter;
 import ru.yandex.practicum.filmorate.validation.MinimumDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film model representing a movie.
@@ -23,7 +25,7 @@ public final class Film {
 
     /** Film ID. */
     @Setter
-    private int id;
+    private Long id;
 
     /** Film name. */
     @NotBlank(message = "Name cannot be blank")
@@ -42,6 +44,9 @@ public final class Film {
     /** Film duration. */
     @Positive(message = "Duration must be positive")
     private final int duration;
+
+    /** User IDs who liked the film. */
+    private final Set<Long> likes = new HashSet<>();
 
     @JsonCreator
     public Film(@JsonProperty("name") String name,
